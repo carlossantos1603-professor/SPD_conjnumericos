@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SPD - Conjuntos Numéricos</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #333;
+}
+
+.container {
+    width: 400px;
+    text-align: center;
+}
+
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    min-height: 150px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.6s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.buttons {
+    margin-top: 20px;
+    display: none;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.correct {
+    background: #4CAF50;
+    color: white;
+}
+
+.wrong {
+    background: #f44336;
+    color: white;
+}
+
+.info {
+    margin-bottom: 15px;
+    color: white;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="info" id="info"></div>
+    <div class="card" id="card" onclick="flipCard()"></div>
+    <div class="buttons">
+        <button class="correct" onclick="answer(true)">Acertei</button>
+        <button class="wrong" onclick="answer(false)">Errei</button>
+    </div>
+</div>
+
+<script>
+const intervals = [1, 3, 7, 15, 30];
+
+let cards = [
+{q:"Os números naturais incluem o zero?",a:"Sim. N = {0,1,2,3,...}"},
+{q:"Qual a diferença entre naturais e inteiros?",a:"Inteiros incluem negativos."},
+{q:"(-3) × (-2) =",a:"6"},
+{q:"(-3)² =",a:"9"},
+{q:"√16 =",a:"4"},
+{q:"√25 =",a:"5"},
+{q:"5 ÷ 0 é possível?",a:"Não. Divisão por zero não existe."},
+{q:"0 ÷ 5 =",a:"0"},
+{q:"Fração é sempre racional?",a:"Sim."},
+{q:"Dízima periódica é racional?",a:"Sim."},
+{q:"Regra de sinais na multiplicação?",a:"Sinais iguais: positivo. Diferentes: negativo."},
+{q:"Ordem das operações?",a:"Potência → Multiplicação/Divisão → Soma/Subtração"},
+{q:"(-4) × 3 =",a:"-12"},
+{q:"(-4) × (-3) =",a:"12"},
+{q:"7 - 10 =",a:"-3"},
+{q:"2³ =",a:"8"},
+{q:"(-2)³ =",a:"-8"},
+{q:"(-2)² =",a:"4"},
+{q:"√49 =",a:"7"},
+{q:"Todo inteiro é racional?",a:"Sim."},
+{q:"Todo racional é inteiro?",a:"Não."},
+{q:"Qual conjunto contém -5?",a:"Inteiros e racionais."},
+{q:"3/4 pertence a qual conjunto?",a:"Racionais."},
+{q:"Raiz quadrada de número negativo é real?",a:"Não."},
+{q:"10 - (-3) =",a:"13"},
+{q:"(-5) + (-2) =",a:"-7"},
+{q:"6 ÷ (-2) =",a:"-3"},
+{q:"Potência de expoente 2 significa?",a:"Multiplicar o número por ele mesmo."},
+{q:"Qual é maior: -1 ou 2?",a:"2"},
+{q:"Qual é menor: -5 ou -2?",a:"-5"}
+];
+
+let currentCard = null;
+let showingAnswer = false;
+
+function loadProgress() {
+    let saved = JSON.parse(localStorage.getItem("spd_conj"));
+    if(saved) cards = saved;
+}
+
+function saveProgress() {
+    localStorage.setItem("spd_conj", JSON.stringify(cards));
+}
+
+function getTodayCards() {
+    let today = new Date().toDateString();
+    return cards.filter(card => !card.nextReview || new Date(card.nextReview).toDateString() <= today);
+}
+
+function showNextCard() {
+    let available = getTodayCards();
+    document.getElementById("info").innerText =
+        available.length > 0 ? `${available.length} cards para revisar hoje`
+                             : "Parabéns! Nenhum card para revisar hoje.";
+
+    if(available.length === 0) {
+        document.getElementById("card").innerText = "Revisão concluída!";
+        document.querySelector(".buttons").style.display = "none";
+        return;
+    }
+
+    currentCard = available[Math.floor(Math.random()*available.length)];
+    document.getElementById("card").innerText = currentCard.q;
+    document.querySelector(".buttons").style.display = "none";
+    showingAnswer = false;
+}
+
+function flipCard() {
+    if(!currentCard) return;
+    if(!showingAnswer) {
+        document.getElementById("card").innerText = currentCard.a;
+        document.querySelector(".buttons").style.display = "block";
+        showingAnswer = true;
+    }
+}
+
+function answer(correct) {
+    if(correct) {
+        currentCard.box = currentCard.box ? Math.min(currentCard.box+1, 5) : 1;
+    } else {
+        currentCard.box = 1;
+    }
+    let days = intervals[(currentCard.box || 1)-1];
+    let next = new Date();
+    next.setDate(next.getDate()+days);
+    currentCard.nextReview = next;
+
+    saveProgress();
+    showNextCard();
+}
+
+loadProgress();
+showNextCard();
+</script>
+
+</body>
+</html>
